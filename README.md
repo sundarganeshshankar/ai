@@ -34,10 +34,11 @@ The repo now includes a **browser UI** (`web_app.py`) built with Streamlit.
 
 ### Streamlit Cloud fix (for the install error you saw)
 
-If Streamlit Cloud failed with a Pillow/zlib build error, this repo now includes:
+If Streamlit Cloud failed during dependency install, this repo now includes:
 
 - `requirements.txt` upgraded to `streamlit==1.50.0`
-- `runtime.txt` pinned to `python-3.12`
+- `runtime.txt` pinned to `3.12` (Streamlit Cloud format)
+- `pillow==11.3.0` pinned explicitly to force a prebuilt wheel
 
 After pulling the latest commit, in Streamlit Cloud click **Reboot app** (or push any commit) to redeploy.
 
