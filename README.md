@@ -39,8 +39,13 @@ If Streamlit Cloud failed during dependency install, this repo now includes:
 - `requirements.txt` upgraded to `streamlit==1.50.0`
 - `runtime.txt` pinned to `3.12` (Streamlit Cloud format)
 - `pillow==11.3.0` pinned explicitly to force a prebuilt wheel
+- `packages.txt` adds `zlib1g-dev` as a fallback if Pillow must compile
 
 After pulling the latest commit, in Streamlit Cloud click **Reboot app** (or push any commit) to redeploy.
+
+
+If logs show only `Successfully installed ... rich` and pip update notices, that part is **not** the real error.
+Scroll up in the log to find the first `ERROR:` line (usually above that section).
 
 ---
 
