@@ -1,32 +1,57 @@
 # Semiprime Factorization Timing App
 
-This small app benchmarks how long different factorization methods take on a semiprime candidate.
+This project lets you test semiprime factorization speed across:
 
-## Included methods
-
-1. **Trial division** (baseline)
+1. **Trial division**
 2. **Fermat factorization**
 3. **Pollard Rho**
-4. **Custom 6n±1 method** based on your equations:
-   - If `N = 6n + 1`, derive `z = (N - 1) / 6`, then search integer solutions for:
-     - `6xy + x + y = z`
-     - `6xy - x - y = z`
-   - If `N = 6n - 1`, derive `z = (N + 1) / 6`, then search integer solutions for:
-     - `6xy + x - y = z`
+4. **Custom 6n±1 method**
 
-## Run
+## Your custom method (implemented)
+
+For semiprime `N`:
+
+- If `N = 6n + 1`, compute `z = (N - 1) / 6`, then solve integer equations:
+  - `6xy + x + y = z`
+  - `6xy - x - y = z`
+- If `N = 6n - 1`, compute `z = (N + 1) / 6`, then solve:
+  - `6xy + x - y = z`
+
+---
+
+## Easiest way to test (no coding UI): web app
+
+The repo now includes a **browser UI** (`web_app.py`) built with Streamlit.
+
+### One-click deployment on Render (recommended)
+
+1. Push this repo to GitHub.
+2. In Render, create a new **Blueprint** service from the repo.
+3. Render will auto-detect `render.yaml` and deploy.
+4. Open the generated URL and test numbers directly in your browser.
+
+`render.yaml` is already configured to run Streamlit on Render.
+
+---
+
+## Local run (optional)
+
+### CLI
 
 ```bash
 python3 app.py <semiprime>
 ```
 
-Example:
+### Web UI
 
 ```bash
-python3 app.py 10019645663
+pip install -r requirements.txt
+streamlit run web_app.py
 ```
 
-## Test
+---
+
+## Tests
 
 ```bash
 python3 -m unittest discover -s tests
