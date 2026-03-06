@@ -47,6 +47,21 @@ After pulling the latest commit, in Streamlit Cloud click **Reboot app** (or pus
 If logs show only `Successfully installed ... rich` and pip update notices, that part is **not** the real error.
 Scroll up in the log to find the first `ERROR:` line (usually above that section).
 
+
+### If logs still show `streamlit==1.39.0` or Python `3.14`
+
+That means Streamlit Cloud is deploying an **older commit/branch** (or stale app config), not your latest files.
+
+Checklist:
+1. In Streamlit Cloud, confirm **Repo + Branch** points to the branch you just merged.
+2. Confirm app file path is `web_app.py`.
+3. In GitHub web UI, open the exact deployed branch and verify:
+   - `requirements.txt` line 1 is `streamlit==1.50.0`
+   - `runtime.txt` is `3.12`
+   - `.python-version` is `3.12`
+4. In Streamlit Cloud, click **Reboot app**.
+5. If still stale, use app menu → **Delete app** and recreate it from the same repo/branch.
+
 ---
 
 ## Local run (optional)
