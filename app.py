@@ -144,37 +144,79 @@ def custom_6n_method(n: int) -> Optional[Factors]:
     return None
 
 
-def _solve_6n_plus_1(n: int, z: int) -> Optional[Factors]:
-    limit = math.isqrt(n) // 6 + 4
-    for x in range(1, limit + 1):
-        denom1 = 6 * x + 1
-        if (z - x) % denom1 == 0:
-            y = (z - x) // denom1
-            if y > 0:
-                a, b = 6 * x + 1, 6 * y + 1
-                if a * b == n:
-                    return normalize_factors(a, b)
+def _max_x_for_search(n: int) -> int:
+    """Upper bound for x based on smallest possible factor form 6x±1 <= sqrt(n)."""
+    return max(1, math.isqrt(n) // 6 + 4)
 
-        denom2 = 6 * x - 1
-        if denom2 > 0 and (z + x) % denom2 == 0:
-            y = (z + x) // denom2
-            if y > 0:
-                a, b = 6 * x - 1, 6 * y - 1
-                if a * b == n:
-                    return normalize_factors(a, b)
+
+def _solve_6n_plus_1(n: int, z: int) -> Optional[Factors]:
+    limit = _max_x_for_search(n)
+
+    # Branch A: 6xy + x + y = z -> y = (z - x)/(6x + 1)
+    for x in range(1, limit + 1):
+        # Symmetry pruning: enforce y >= x to avoid mirrored duplicate checks.
+        numer = z - x
+        if numer <= 0:
+            break
+        denom = 6 * x + 1
+        if numer < x * denom:
+            break
+
+        # Fast residue filter: if numerator parity mismatches denominator parity, skip.
+        # (Denominator is odd, so this only helps avoid modulo for obvious misses.)
+        if numer & 1 and denom % 2 == 0:
+            continue
+
+        if numer % denom != 0:
+            continue
+
+        y = numer // denom
+        if y < x:
+            continue
+
+        a, b = 6 * x + 1, 6 * y + 1
+        if a * b == n:
+            return normalize_factors(a, b)
+
+    # Branch B: 6xy - x - y = z -> y = (z + x)/(6x - 1)
+    for x in range(1, limit + 1):
+        numer = z + x
+        denom = 6 * x - 1
+        if denom <= 0:
+            continue
+        if numer < x * denom:
+            break
+        if numer % denom != 0:
+            continue
+
+        y = numer // denom
+        if y < x:
+            continue
+
+        a, b = 6 * x - 1, 6 * y - 1
+        if a > 1 and b > 1 and a * b == n:
+            return normalize_factors(a, b)
+
     return None
 
 
 def _solve_6n_minus_1(n: int, z: int) -> Optional[Factors]:
-    limit = math.isqrt(n) // 6 + 4
+    # 6xy + x - y = z -> y = (z - x)/(6x - 1)
+    # Not symmetric in x/y forms, so do not enforce y >= x pruning here.
+    limit = _max_x_for_search(n)
     for x in range(1, limit + 1):
+        numer = z - x
+        if numer <= 0:
+            break
+
         denom = 6 * x - 1
-        rhs = z - x
-        if rhs <= 0 or rhs % denom != 0:
+        if denom <= 0 or numer % denom != 0:
             continue
-        y = rhs // denom
+
+        y = numer // denom
         if y <= 0:
             continue
+
         a, b = 6 * x - 1, 6 * y + 1
         if a > 1 and b > 1 and a * b == n:
             return normalize_factors(a, b)

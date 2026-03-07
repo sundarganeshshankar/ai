@@ -10,6 +10,9 @@ class FactorTests(unittest.TestCase):
     def test_6n_minus_1(self):
         self.assertEqual(custom_6n_method(35), (5, 7))
 
+    def test_custom_method_handles_non_semiprime_input(self):
+        self.assertIsNone(custom_6n_method(1))
+
     def test_methods_on_semiprime(self):
         n = 1009 * 1013
         expected = (1009, 1013)
