@@ -6,6 +6,7 @@ import math
 import random
 from typing import Iterable
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
@@ -162,7 +163,14 @@ with chart_col:
             st.dataframe(avg_df, use_container_width=True)
 
             pivot_avg = avg_df.pivot(index="method", columns="category", values="seconds")
-            st.bar_chart(pivot_avg)
+            fig_bar, ax_bar = plt.subplots(figsize=(8, 4))
+            pivot_avg.plot(kind="bar", ax=ax_bar)
+            ax_bar.set_ylabel("Seconds")
+            ax_bar.set_title("Average factorization time by method and category")
+            ax_bar.legend(title="Category")
+            ax_bar.grid(axis="y", alpha=0.3)
+            st.pyplot(fig_bar)
+            plt.close(fig_bar)
 
             st.markdown("**Per-sample time trend**")
             trend = df.copy()
@@ -170,7 +178,14 @@ with chart_col:
             pivot_trend = trend.pivot_table(
                 index="sample", columns="series", values="seconds", aggfunc="mean"
             )
-            st.line_chart(pivot_trend)
+            fig_line, ax_line = plt.subplots(figsize=(10, 4))
+            pivot_trend.plot(ax=ax_line)
+            ax_line.set_ylabel("Seconds")
+            ax_line.set_xlabel("Sample")
+            ax_line.set_title("Per-sample timing trend")
+            ax_line.grid(alpha=0.3)
+            st.pyplot(fig_line)
+            plt.close(fig_line)
 
 st.caption(
     "Custom equations: for 6n+1 use 6xy+x+y=z and 6xy-x-y=z; for 6n-1 use 6xy+x-y=z."
