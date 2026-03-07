@@ -6,8 +6,8 @@ import math
 import random
 from typing import Iterable
 
-import matplotlib.pyplot as plt
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 from app import DEFAULT_METHODS, benchmark
@@ -63,7 +63,7 @@ st.set_page_config(page_title="Semiprime Bench", page_icon="🔢", layout="wide"
 st.title("🔢 Semiprime Factorization Benchmark")
 st.write("Compare factorization time across classic methods and your custom 6n±1 method.")
 
-single_col, chart_col = st.columns([1, 1.3])
+single_col, chart_col = st.columns([1, 1.4])
 
 with single_col:
     st.subheader("Single number benchmark")
@@ -89,9 +89,18 @@ with single_col:
         st.table(rows)
 
 with chart_col:
-    st.subheader("Comparative charts (small×large vs large×large)")
+    st.subheader("Comparative charts")
+    st.caption("Generate up to 100 semiprimes across ranges and compare method timings.")
+
     sample_count = st.slider("Number of semiprimes", min_value=10, max_value=100, value=40, step=10)
     seed = st.number_input("Random seed", min_value=0, value=7, step=1)
+
+    categories = st.multiselect(
+        "Category selection",
+        ["small × large", "large × large"],
+        default=["small × large", "large × large"],
+        help="Choose which semiprime categories to include in the comparative run.",
+    )
 
     c1, c2 = st.columns(2)
     with c1:
@@ -104,88 +113,102 @@ with chart_col:
         large_max = st.number_input("Large max", min_value=103, value=5003, step=1)
 
     if st.button("Run comparative charts"):
-        rng = random.Random(int(seed))
+        if not categories:
+            st.error("Pick at least one category.")
+            st.stop()
 
+        rng = random.Random(int(seed))
         small_primes = primes_in_range(int(small_min), int(small_max))
         large_primes = primes_in_range(int(large_min), int(large_max))
 
         if not small_primes or not large_primes:
             st.error("No primes found in one of the selected ranges. Please widen ranges.")
-        else:
-            count_small_large = sample_count // 2
-            count_large_large = sample_count - count_small_large
+            st.stop()
 
-            semiprimes = []
-            semiprimes.extend(
-                sample_semiprimes(
-                    rng,
-                    small_primes,
-                    large_primes,
-                    count_small_large,
-                    "small × large",
+        counts: dict[str, int] = {}
+        base = sample_count // len(categories)
+        remainder = sample_count % len(categories)
+        for i, cat in enumerate(categories):
+            counts[cat] = base + (1 if i < remainder else 0)
+
+        semiprimes: list[dict[str, int | str]] = []
+        sample_id = 1
+
+        if "small × large" in categories:
+            rows = sample_semiprimes(
+                rng,
+                small_primes,
+                large_primes,
+                counts["small × large"],
+                "small × large",
+            )
+            for row in rows:
+                row["sample"] = sample_id
+                sample_id += 1
+            semiprimes.extend(rows)
+
+        if "large × large" in categories:
+            rows = sample_semiprimes(
+                rng,
+                large_primes,
+                large_primes,
+                counts["large × large"],
+                "large × large",
+            )
+            for row in rows:
+                row["sample"] = sample_id
+                sample_id += 1
+            semiprimes.extend(rows)
+
+        time_rows: list[dict[str, float | str | int]] = []
+        progress = st.progress(0.0)
+        total = len(semiprimes)
+
+        for i, row in enumerate(semiprimes, start=1):
+            results = benchmark(int(row["n"]), DEFAULT_METHODS)
+            for r in results:
+                time_rows.append(
+                    {
+                        "sample": int(row["sample"]),
+                        "category": str(row["category"]),
+                        "method": r.method,
+                        "seconds": r.elapsed_seconds,
+                    }
                 )
-            )
-            semiprimes.extend(
-                sample_semiprimes(
-                    rng,
-                    large_primes,
-                    large_primes,
-                    count_large_large,
-                    "large × large",
-                )
-            )
+            progress.progress(i / total)
 
-            time_rows: list[dict[str, float | str | int]] = []
-            progress = st.progress(0.0)
-            total = len(semiprimes)
+        df = pd.DataFrame(time_rows)
 
-            for i, row in enumerate(semiprimes, start=1):
-                results = benchmark(int(row["n"]), DEFAULT_METHODS)
-                for r in results:
-                    time_rows.append(
-                        {
-                            "sample": int(row["sample"]),
-                            "category": str(row["category"]),
-                            "method": r.method,
-                            "seconds": r.elapsed_seconds,
-                        }
-                    )
-                progress.progress(i / total)
+        st.markdown("**Average time by method and category**")
+        avg_df = (
+            df.groupby(["method", "category"], as_index=False)["seconds"]
+            .mean()
+            .sort_values(["category", "seconds"])
+        )
+        st.dataframe(avg_df, use_container_width=True)
 
-            df = pd.DataFrame(time_rows)
+        fig_bar = px.bar(
+            avg_df,
+            x="method",
+            y="seconds",
+            color="category",
+            barmode="group",
+            title="Average factorization time by method and category",
+            labels={"seconds": "Time (seconds)", "method": "Method", "category": "Category"},
+        )
+        st.plotly_chart(fig_bar, use_container_width=True)
 
-            st.markdown("**Average time by method and category**")
-            avg_df = (
-                df.groupby(["method", "category"], as_index=False)["seconds"]
-                .mean()
-                .sort_values(["category", "seconds"])
-            )
-            st.dataframe(avg_df, use_container_width=True)
-
-            pivot_avg = avg_df.pivot(index="method", columns="category", values="seconds")
-            fig_bar, ax_bar = plt.subplots(figsize=(8, 4))
-            pivot_avg.plot(kind="bar", ax=ax_bar)
-            ax_bar.set_ylabel("Seconds")
-            ax_bar.set_title("Average factorization time by method and category")
-            ax_bar.legend(title="Category")
-            ax_bar.grid(axis="y", alpha=0.3)
-            st.pyplot(fig_bar)
-            plt.close(fig_bar)
-
-            st.markdown("**Per-sample time trend**")
-            trend = df.copy()
-            trend["series"] = trend["category"] + " | " + trend["method"]
-            pivot_trend = trend.pivot_table(
-                index="sample", columns="series", values="seconds", aggfunc="mean"
-            )
-            fig_line, ax_line = plt.subplots(figsize=(10, 4))
-            pivot_trend.plot(ax=ax_line)
-            ax_line.set_ylabel("Seconds")
-            ax_line.set_xlabel("Sample")
-            ax_line.set_title("Per-sample timing trend")
-            ax_line.grid(alpha=0.3)
-            st.pyplot(fig_line)
-            plt.close(fig_line)
+        st.markdown("**Per-sample time trend**")
+        fig_line = px.line(
+            df,
+            x="sample",
+            y="seconds",
+            color="method",
+            line_dash="category",
+            title="Per-sample timing trend",
+            labels={"sample": "Sample #", "seconds": "Time (seconds)", "method": "Method"},
+        )
+        st.plotly_chart(fig_line, use_container_width=True)
 
 st.caption(
     "Custom equations: for 6n+1 use 6xy+x+y=z and 6xy-x-y=z; for 6n-1 use 6xy+x-y=z."
