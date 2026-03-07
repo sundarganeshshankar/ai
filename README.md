@@ -23,6 +23,10 @@ For semiprime `N`:
 
 The repo now includes a **browser UI** (`web_app.py`) built with Streamlit.
 
+
+> Tip for Streamlit Cloud: use `streamlit_app.py` as the app file path.
+> It is a thin wrapper around `web_app.py` and helps avoid misconfigured entrypoints.
+
 ### One-click deployment on Render (recommended)
 
 1. Push this repo to GitHub.
@@ -31,6 +35,36 @@ The repo now includes a **browser UI** (`web_app.py`) built with Streamlit.
 4. Open the generated URL and test numbers directly in your browser.
 
 `render.yaml` is already configured to run Streamlit on Render.
+
+### Streamlit Cloud fix (for the install error you saw)
+
+If Streamlit Cloud failed during dependency install, this repo now includes:
+
+- `requirements.txt` upgraded to `streamlit==1.50.0`
+- `runtime.txt` pinned to `3.12` (Streamlit Cloud format)
+- `pillow==11.3.0` pinned explicitly to force a prebuilt wheel
+- `packages.txt` adds `zlib1g-dev` as a fallback if Pillow must compile
+
+After pulling the latest commit, in Streamlit Cloud click **Reboot app** (or push any commit) to redeploy.
+
+
+If logs show only `Successfully installed ... rich` and pip update notices, that part is **not** the real error.
+Scroll up in the log to find the first `ERROR:` line (usually above that section).
+
+
+### If logs still show `streamlit==1.39.0` or Python `3.14`
+
+That means Streamlit Cloud is deploying an **older commit/branch** (or stale app config), not your latest files.
+
+Checklist:
+1. In Streamlit Cloud, confirm **Repo + Branch** points to the branch you just merged.
+2. Confirm app file path is `streamlit_app.py` (or explicitly `web_app.py`).
+3. In GitHub web UI, open the exact deployed branch and verify:
+   - `requirements.txt` line 1 is `streamlit==1.50.0`
+   - `runtime.txt` is `3.12`
+   - `.python-version` is `3.12`
+4. In Streamlit Cloud, click **Reboot app**.
+5. If still stale, use app menu → **Delete app** and recreate it from the same repo/branch.
 
 ---
 
