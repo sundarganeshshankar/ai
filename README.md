@@ -17,6 +17,19 @@ Given semiprime `N`:
 - If `N = 6n - 1`, compute `z = (N + 1) / 6` and solve:
   - `6xy + x - y = z`
 
+
+## Comparative chart mode
+
+The app now includes a **Run comparative charts** button that generates up to **100 semiprimes**
+across broad ranges and compares timings for:
+
+- small prime × large prime
+- large prime × large prime
+
+It shows:
+- average time table/bar chart by method and category
+- per-sample line trend chart across all methods
+
 ## Run locally (optional)
 
 ```bash
