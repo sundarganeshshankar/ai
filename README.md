@@ -23,6 +23,10 @@ For semiprime `N`:
 
 The repo now includes a **browser UI** (`web_app.py`) built with Streamlit.
 
+
+> Tip for Streamlit Cloud: use `streamlit_app.py` as the app file path.
+> It is a thin wrapper around `web_app.py` and helps avoid misconfigured entrypoints.
+
 ### One-click deployment on Render (recommended)
 
 1. Push this repo to GitHub.
@@ -54,7 +58,7 @@ That means Streamlit Cloud is deploying an **older commit/branch** (or stale app
 
 Checklist:
 1. In Streamlit Cloud, confirm **Repo + Branch** points to the branch you just merged.
-2. Confirm app file path is `web_app.py`.
+2. Confirm app file path is `streamlit_app.py` (or explicitly `web_app.py`).
 3. In GitHub web UI, open the exact deployed branch and verify:
    - `requirements.txt` line 1 is `streamlit==1.50.0`
    - `runtime.txt` is `3.12`
