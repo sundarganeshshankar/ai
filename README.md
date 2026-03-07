@@ -1,92 +1,52 @@
-# Semiprime Factorization Timing App
+# Semiprime Benchmark App (Free Streamlit Cloud Ready)
 
-This project lets you test semiprime factorization speed across:
+A simple app to measure how long it takes to factor a semiprime using:
 
-1. **Trial division**
-2. **Fermat factorization**
-3. **Pollard Rho**
-4. **Custom 6n±1 method**
+1. Trial division
+2. Fermat factorization
+3. Pollard Rho
+4. Your custom 6n±1 method
 
-## Your custom method (implemented)
+## Your custom method
 
-For semiprime `N`:
+Given semiprime `N`:
 
-- If `N = 6n + 1`, compute `z = (N - 1) / 6`, then solve integer equations:
+- If `N = 6n + 1`, compute `z = (N - 1) / 6` and solve integer equations:
   - `6xy + x + y = z`
   - `6xy - x - y = z`
-- If `N = 6n - 1`, compute `z = (N + 1) / 6`, then solve:
+- If `N = 6n - 1`, compute `z = (N + 1) / 6` and solve:
   - `6xy + x - y = z`
 
----
-
-## Easiest way to test (no coding UI): web app
-
-The repo now includes a **browser UI** (`web_app.py`) built with Streamlit.
-
-
-> Tip for Streamlit Cloud: use `streamlit_app.py` as the app file path.
-> It is a thin wrapper around `web_app.py` and helps avoid misconfigured entrypoints.
-
-### One-click deployment on Render (recommended)
-
-1. Push this repo to GitHub.
-2. In Render, create a new **Blueprint** service from the repo.
-3. Render will auto-detect `render.yaml` and deploy.
-4. Open the generated URL and test numbers directly in your browser.
-
-`render.yaml` is already configured to run Streamlit on Render.
-
-### Streamlit Cloud fix (for the install error you saw)
-
-If Streamlit Cloud failed during dependency install, this repo now includes:
-
-- `requirements.txt` upgraded to `streamlit==1.50.0`
-- `runtime.txt` pinned to `3.12` (Streamlit Cloud format)
-- `pillow==11.3.0` pinned explicitly to force a prebuilt wheel
-- `packages.txt` adds `zlib1g-dev` as a fallback if Pillow must compile
-
-After pulling the latest commit, in Streamlit Cloud click **Reboot app** (or push any commit) to redeploy.
-
-
-If logs show only `Successfully installed ... rich` and pip update notices, that part is **not** the real error.
-Scroll up in the log to find the first `ERROR:` line (usually above that section).
-
-
-### If logs still show `streamlit==1.39.0` or Python `3.14`
-
-That means Streamlit Cloud is deploying an **older commit/branch** (or stale app config), not your latest files.
-
-Checklist:
-1. In Streamlit Cloud, confirm **Repo + Branch** points to the branch you just merged.
-2. Confirm app file path is `streamlit_app.py` (or explicitly `web_app.py`).
-3. In GitHub web UI, open the exact deployed branch and verify:
-   - `requirements.txt` line 1 is `streamlit==1.50.0`
-   - `runtime.txt` is `3.12`
-   - `.python-version` is `3.12`
-4. In Streamlit Cloud, click **Reboot app**.
-5. If still stale, use app menu → **Delete app** and recreate it from the same repo/branch.
-
----
-
-## Local run (optional)
-
-### CLI
-
-```bash
-python3 app.py <semiprime>
-```
-
-### Web UI
+## Run locally (optional)
 
 ```bash
 pip install -r requirements.txt
-streamlit run web_app.py
+streamlit run streamlit_app.py
 ```
 
----
+## Deploy free on Streamlit Community Cloud
+
+- **Repo:** this GitHub repo
+- **Branch:** the branch containing these files (usually `main`)
+- **App file:** `streamlit_app.py`
+
+If deployment cache is stale, click **Reboot app**.
+
+
+## Streamlit Cloud install fix
+
+If you hit a Pillow wheel build error, this repo now pins:
+
+- `streamlit==1.50.0`
+- `runtime.txt` -> `3.12`
+
+Then in Streamlit Cloud click **Reboot app** after pushing these changes.
 
 ## Tests
 
 ```bash
 python3 -m unittest discover -s tests
 ```
+
+
+If logs still mention `streamlit==1.39.0`, Streamlit Cloud is using an older branch/commit. Re-check repo+branch+app file and recreate the app if needed.
