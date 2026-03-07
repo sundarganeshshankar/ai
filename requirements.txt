@@ -1,2 +1,1 @@
-streamlit>=1.50,<2
-pillow>=11.0
+streamlit==1.39.0
