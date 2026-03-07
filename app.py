@@ -12,11 +12,26 @@ Factors = Tuple[int, int]
 Method = Callable[[int], Optional[Factors]]
 
 
-@dataclass
+@dataclass(init=False)
 class BenchmarkResult:
     method: str
     factors: Optional[Factors]
     elapsed_seconds: float
+
+    def __init__(
+        self,
+        method: Optional[str] = None,
+        factors: Optional[Factors] = None,
+        elapsed_seconds: float = 0.0,
+        name: Optional[str] = None,
+    ) -> None:
+        # Backward-compatible alias: some deployments may still call with `name=`.
+        chosen = method if method is not None else name
+        if chosen is None:
+            raise TypeError("BenchmarkResult requires `method` (or legacy `name`).")
+        self.method = chosen
+        self.factors = factors
+        self.elapsed_seconds = elapsed_seconds
 
 
 def normalize_factors(a: int, b: int) -> Factors:
@@ -172,7 +187,7 @@ def benchmark(n: int, methods: list[tuple[str, Method]]) -> list[BenchmarkResult
         start = time.perf_counter()
         factors = method(n)
         elapsed = time.perf_counter() - start
-        results.append(BenchmarkResult(name=name, factors=factors, elapsed_seconds=elapsed))
+        results.append(BenchmarkResult(method=name, factors=factors, elapsed_seconds=elapsed))
     return results
 
 
